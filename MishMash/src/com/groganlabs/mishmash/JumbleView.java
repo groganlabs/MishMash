@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 public class JumbleView extends View{
@@ -13,6 +14,7 @@ public class JumbleView extends View{
 	private Typeface mTypeface;
 	private Context mContext;
 	private int mH, mW;
+	private float mCharSize, mFontSize;
 	
 	/**
 	 * constructor used to create view from code
@@ -35,9 +37,10 @@ public class JumbleView extends View{
 	}
 	
 	private void init() {
+		mFontSize = 18 * mContext.getResources().getDisplayMetrics().density;
 		mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextPaint.setColor(0xffffffff);
-		mTextPaint.setTextSize(32);
+		Log.d("JumbleView", "char size 1: " + String.valueOf(mCharSize));
 		
 		mBgPaint = new Paint();
 		mBgPaint.setColor(0xff000000);
@@ -56,21 +59,41 @@ public class JumbleView extends View{
 	}
 	
 	@Override
-	protected void onMeasure(int w, int h) {
+	protected void onMeasure(int wMS, int hMS) {
+		int w = MeasureSpec.getSize(wMS);
+		int h = MeasureSpec.getSize(hMS);
+		float minCharSize = w / 30f;
+		Log.d("JumbleView", "width: " + String.valueOf(w));
+		if(minCharSize >= mFontSize) {
+			mCharSize = minCharSize;
+		}
+		else {
+			mCharSize = mFontSize;
+		}
+		Log.d("JumbleView", "char size 2: " + String.valueOf(mCharSize));
 		setMeasuredDimension(w, h-200);
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
+		int numCharsPerRow = (int) ((int) mW / mCharSize);
+		int maxRows = 10;
 		super.onDraw(canvas);
-		int charSize = 32;
+		mTextPaint.setTextSize(mCharSize);
 		
-		//char[] chars = {'H', 'I', 'M', 'W'};
-		//float[] ints = new float[4];
-		char[][] gameArray = {{'B', 'C', 'J', 'M', ' ', 'M', 'A', 'Q', ' ', 'P', 'J', 'M'},
+		/*char[][] gameArray = {{'B', 'C', 'J', 'M', ' ', 'M', 'A', 'Q', ' ', 'P', 'J', 'M'},
 				{'A', 'L', 'P', ' ', 'J', 'M', 'U', 'I', ' ', 'U', 'O', 'N', 'Y'},
 				{'M', 'A', 'J', 'M', 'S', 'O', 'N', ' ', 'I', 'S', 'T', 'S', 'R'}};
-		char[][] answerArray = new char[3][];
+		char[][] answerArray = new char[3][];*/
+		String gameStr = "THIS IS A TEST. THIS IS ONLY A TEST. PLEASE DO NOT ADJUST YOUR SCREENS.";
+		char[] game = gameStr.toCharArray();
+		char[] answer = new char[game.length];
+		
+		int ii, index = 0, numRows = 0;
+		int[] rowIndices = new int[maxRows];
+		for(ii = 0; ii < game.length; ii++) {
+			
+		}
 		answerArray[0] = new char[gameArray[0].length];
 		answerArray[1] = new char[gameArray[1].length];
 		answerArray[2] = new char[gameArray[2].length];
@@ -82,14 +105,11 @@ public class JumbleView extends View{
 		
 		int[] xPad = new int[gameArray.length];
 		String answer;
-		/*for(int ii = 0; ii < 4; ii++) {
-			canvas.drawText(chars, ii, 1, w*ii, 32, mTextPaint);
-			canvas.drawText(String.valueOf(ints[ii]), w*ii, w*(ii+2), mTextPaint);
-			canvas.drawText(String.valueOf(mTextPaint.measureText(chars, ii, 1)), w*ii, w*ii+4*w, mTextPaint);
-		}*/
 		int ii, jj;
+		float aCharWidth, gCharWidth, aCharPadding, gCharPadding;
+		
 		for(ii = 0; ii < gameArray.length; ii++) {
-			xPad[ii] = (mW - (gameArray[ii].length * charSize))/2;
+			xPad[ii] = (int) ((mW - (gameArray[ii].length * mCharSize))/2);
 			
 			for(jj = 0; jj < gameArray[ii].length; jj++) {
 				if(gameArray[ii][jj] != ' ') {
@@ -99,8 +119,12 @@ public class JumbleView extends View{
 					else {
 						answer = String.valueOf(answerArray[ii][jj]);
 					}
-					canvas.drawText(answer, xPad[ii]+(charSize*jj), charSize*(2f*ii+1)+(yPad*ii), mTextPaint);
-					canvas.drawText(gameArray[ii], jj, 1,xPad[ii]+(charSize*jj), charSize*(2f*ii+2)+(yPad*ii), mTextPaint);
+					aCharWidth = mTextPaint.measureText(answer);
+					gCharWidth = mTextPaint.measureText(gameArray[ii], jj, 1);
+					aCharPadding = mCharSize-aCharWidth/2f;
+					gCharPadding = mCharSize-gCharWidth/2f;
+					canvas.drawText(answer, xPad[ii]+(mCharSize*jj)+aCharPadding, mCharSize*(2f*ii+1)+(yPad*ii), mTextPaint);
+					canvas.drawText(gameArray[ii], jj, 1,xPad[ii]+(mCharSize*jj)+gCharPadding, mCharSize*(2f*ii+2)+(yPad*ii), mTextPaint);
 				}
 			}
 			
