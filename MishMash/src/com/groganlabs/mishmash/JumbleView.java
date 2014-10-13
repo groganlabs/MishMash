@@ -14,7 +14,10 @@ public class JumbleView extends View{
 	private Typeface mTypeface;
 	private Context mContext;
 	private int mH, mW;
-	private float mCharSize, mFontSize;
+	private float mCharSize, mFontSize, mYPad;
+	private int[] mXPad;
+	private int mNumRows;
+	public String test = "test";
 	
 	/**
 	 * constructor used to create view from code
@@ -36,6 +39,27 @@ public class JumbleView extends View{
 		init();
 	}
 	
+	public float getCharSize() {
+		return mCharSize;
+	}
+	
+	public int getNumRows() {
+		return mNumRows;
+	}
+	
+	public float getYPad() {
+		return mYPad;
+	}
+	
+	public int getXPad(int ii) {
+		if(ii < mNumRows) {
+			return mXPad[ii];
+		}
+		else {
+			return -1;
+		}
+	}
+	
 	private void init() {
 		mFontSize = 18 * mContext.getResources().getDisplayMetrics().density;
 		mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -45,7 +69,7 @@ public class JumbleView extends View{
 		mBgPaint = new Paint();
 		mBgPaint.setColor(0xff000000);
 		
-		mTypeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
+		//mTypeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
 		//mTypeface = Typeface.createFromAsset(mContext.getAssets(), "fonts/DEJAVUSANSMOMO.TTF");
 		mBgPaint.setTypeface(mTypeface);
 		
@@ -76,7 +100,7 @@ public class JumbleView extends View{
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		int numCharsPerRow = (int) ((int) mW / mCharSize);
+		int maxCharsPerRow = (int) ((int) mW / mCharSize);
 		int maxRows = 10;
 		super.onDraw(canvas);
 		mTextPaint.setTextSize(mCharSize);
@@ -86,49 +110,81 @@ public class JumbleView extends View{
 				{'M', 'A', 'J', 'M', 'S', 'O', 'N', ' ', 'I', 'S', 'T', 'S', 'R'}};
 		char[][] answerArray = new char[3][];*/
 		String gameStr = "THIS IS A TEST. THIS IS ONLY A TEST. PLEASE DO NOT ADJUST YOUR SCREENS.";
-		char[] game = gameStr.toCharArray();
-		char[] answer = new char[game.length];
+		char[] gameArray = gameStr.toCharArray();
+		char[] answerArray = new char[gameArray.length];
+		char[] solutionArray = new char[gameArray.length];
 		
-		int ii, index = 0, numRows = 0;
+		int ii, lastSpace = 0, rowSize = 0;
+		mNumRows = 0;
 		int[] rowIndices = new int[maxRows];
-		for(ii = 0; ii < game.length; ii++) {
-			
-		}
-		answerArray[0] = new char[gameArray[0].length];
-		answerArray[1] = new char[gameArray[1].length];
-		answerArray[2] = new char[gameArray[2].length];
-		answerArray[0][3] = 'T';
-		answerArray[0][10] = 'E';
-		answerArray[1][1] = 'N';
-		answerArray[2][4] = 'E';
-		float yPad = 20f;
+		rowIndices[0] = 0;
 		
-		int[] xPad = new int[gameArray.length];
+		while(true) {
+			if(rowIndices[mNumRows] + maxCharsPerRow >= gameArray.length) {
+				mNumRows++;
+				break;
+			}
+			
+			lastSpace = gameStr.lastIndexOf(' ', rowIndices[mNumRows] + maxCharsPerRow);
+			mNumRows++;
+			// TODO: insert a - into the arrays & string
+			if(lastSpace == -1) {
+				rowIndices[mNumRows] = rowIndices[mNumRows-1] + maxCharsPerRow;
+			}
+			else {
+				rowIndices[mNumRows] = lastSpace;
+			}
+		}
+		
+		mYPad = 20f;
+		
+		mXPad = new int[mNumRows];
 		String answer;
-		int ii, jj;
+		int jj;
+		
 		float aCharWidth, gCharWidth, aCharPadding, gCharPadding;
 		
-		for(ii = 0; ii < gameArray.length; ii++) {
-			xPad[ii] = (int) ((mW - (gameArray[ii].length * mCharSize))/2);
+		for(ii = 0; ii < mNumRows; ii++) {
+			if(ii == mNumRows - 1) {
+				//rowSize = gameArray.length - rowIndices[ii] - 1;
+				rowSize = gameArray.length - rowIndices[ii];
+				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2 - mCharSize);
+			}
+			else if(ii > 0) {
+				//rowSize = rowIndices[ii+1] - rowIndices[ii] - 1;
+				rowSize = rowIndices[ii+1] - rowIndices[ii];
+				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2 - mCharSize);
+			}
+			else {
+				rowSize = rowIndices[ii+1] - rowIndices[ii];
+				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2);
+			}
 			
-			for(jj = 0; jj < gameArray[ii].length; jj++) {
-				if(gameArray[ii][jj] != ' ') {
-					if(answerArray[ii][jj] == 0 || answerArray[ii][jj] == ' ') {
+			//mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2);
+			
+			for(jj = 0; jj < rowSize; jj++) {
+				if(ii == 0 && jj == rowSize) {
+					continue;
+				}
+				
+				if(gameArray[rowIndices[ii]+jj] != ' ') {
+					if(gameArray[rowIndices[ii]+jj] < 'A' || gameArray[rowIndices[ii]+jj] > 'Z') {
+						answerArray[rowIndices[ii]+jj] = gameArray[rowIndices[ii]+jj];	
+					}
+					if(answerArray[rowIndices[ii]+jj] == 0 || answerArray[rowIndices[ii]+jj] == ' ') {
 						answer = "_";
 					}
 					else {
-						answer = String.valueOf(answerArray[ii][jj]);
+						answer = String.valueOf(answerArray[rowIndices[ii]+jj]);
 					}
 					aCharWidth = mTextPaint.measureText(answer);
-					gCharWidth = mTextPaint.measureText(gameArray[ii], jj, 1);
+					gCharWidth = mTextPaint.measureText(gameArray, rowIndices[ii]+jj, 1);
 					aCharPadding = mCharSize-aCharWidth/2f;
 					gCharPadding = mCharSize-gCharWidth/2f;
-					canvas.drawText(answer, xPad[ii]+(mCharSize*jj)+aCharPadding, mCharSize*(2f*ii+1)+(yPad*ii), mTextPaint);
-					canvas.drawText(gameArray[ii], jj, 1,xPad[ii]+(mCharSize*jj)+gCharPadding, mCharSize*(2f*ii+2)+(yPad*ii), mTextPaint);
+					canvas.drawText(answer, mXPad[ii]+(mCharSize*jj)+aCharPadding, mCharSize*(2f*ii+1)+(mYPad*ii), mTextPaint);
+					canvas.drawText(gameArray, rowIndices[ii]+jj, 1, mXPad[ii]+(mCharSize*jj)+gCharPadding, mCharSize*(2f*ii+2)+(mYPad*ii), mTextPaint);
 				}
 			}
-			
 		}
-		
 	}
 }

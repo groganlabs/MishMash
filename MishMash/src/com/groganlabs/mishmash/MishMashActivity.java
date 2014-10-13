@@ -33,22 +33,21 @@ public class MishMashActivity extends Activity implements OnClickListener {
 
 	public void onClick(View v) {
 		Intent i;
-		switch(v.getId()) {
-			case R.id.cryptoBtn:
-				i = new Intent(this, CryptogramActivity.class);
-				break;
-			case R.id.dropBtn:
-				i = new Intent(this, DropQuoteActivity.class);
-				break;
-			case R.id.jumbleBtn:
-				i = new Intent(this, JumbleActivity.class);
-				break;
-			case R.id.settingsBtn:
-			default:
-				i = new Intent(this, MishMashSettings.class);
-				break;
+		if(v.getId() == R.id.cryptoBtn) {
+			i = new Intent(this, CryptogramActivity.class);
+			startActivity(i);
 		}
-		startActivity(i);
-		
+		else if(v.getId() == R.id.dropBtn) {
+			i = new Intent(this, DropQuoteActivity.class);
+			startActivity(i);
+		}
+		else if(v.getId() == R.id.jumbleBtn) {
+			i = new Intent(this, JumbleActivity.class);
+			startActivity(i);
+		}
+		else if(v.getId() == R.id.settingsBtn) {
+			i = new Intent(this, MishMashSettings.class);
+			startActivity(i);
+		}
 	}
 }
