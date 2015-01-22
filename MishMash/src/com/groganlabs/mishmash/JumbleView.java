@@ -95,7 +95,10 @@ public class JumbleView extends View{
 			mCharSize = mFontSize;
 		}
 		Log.d("JumbleView", "char size 2: " + String.valueOf(mCharSize));
-		setMeasuredDimension(w, h-200);
+		//instead of subtracting a constant, figure out how many pixels based on orientation,
+		//screen width and pixel density. Need to figure out a way to do this without duplicating
+		//the same calculations in AlphaView
+		setMeasuredDimension(w, h-300);
 	}
 
 	@Override
