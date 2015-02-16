@@ -3,7 +3,6 @@ package com.groganlabs.mishmash;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -11,9 +10,9 @@ import android.view.View;
 public class JumbleView extends View{
 	private Paint mTextPaint;
 	private Paint mBgPaint;
-	private Typeface mTypeface;
+	//private Typeface mTypeface;
 	private Context mContext;
-	private int mH, mW;
+	private int mW;
 	private float mCharSize, mFontSize, mYPad;
 	private int[] mXPad;
 	private int mNumRows;
@@ -71,7 +70,7 @@ public class JumbleView extends View{
 		
 		//mTypeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
 		//mTypeface = Typeface.createFromAsset(mContext.getAssets(), "fonts/DEJAVUSANSMOMO.TTF");
-		mBgPaint.setTypeface(mTypeface);
+		//mBgPaint.setTypeface(mTypeface);
 		
 	}
 	
@@ -79,7 +78,6 @@ public class JumbleView extends View{
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
 		mW = w;
-		mH = h;
 	}
 	
 	@Override
@@ -98,7 +96,7 @@ public class JumbleView extends View{
 		//instead of subtracting a constant, figure out how many pixels based on orientation,
 		//screen width and pixel density. Need to figure out a way to do this without duplicating
 		//the same calculations in AlphaView
-		setMeasuredDimension(w, h-300);
+		setMeasuredDimension(w, h-500);
 	}
 
 	@Override

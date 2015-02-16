@@ -24,6 +24,16 @@ public class JumbleActivity extends Activity {
 				return gameTouch(e.getX(), e.getY());
 			}
 		});
+		
+		AlphaView alpha = (AlphaView) findViewById(R.id.alphaView1);
+		
+		alpha.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				char res = ((AlphaView) v).getLetter(event.getX(), event.getY());
+				Log.d("jumbleActivity", "you pressed "+String.valueOf(res));
+				return false;
+			}
+		});
 	}
 
 	public boolean gameTouch(float x, float y) {
