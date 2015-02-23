@@ -25,6 +25,8 @@ public class AlphaView extends View {
 	 */
 	public AlphaView(Context context) {
 		super(context);
+		mContext = context;
+		init();
 	}
 	
 	/**
@@ -180,7 +182,7 @@ public class AlphaView extends View {
 				if(charNum <= 6)
 					ret = (char) ('U' + charNum - 1);
 				else if(charNum <= 8)
-					ret = 'd';
+					ret = ' ';
 				else
 					ret = ' ';
 			}
