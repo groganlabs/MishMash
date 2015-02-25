@@ -3,11 +3,8 @@ package com.groganlabs.mishmash;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Paint.Style;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 public class AlphaView extends View {
@@ -16,7 +13,7 @@ public class AlphaView extends View {
 	int mW;
 	int mH;
 	float mFontSize, mCharSize;
-	private Paint mTextPaint, mBgPaint;
+	private Paint mTextPaint;
 	private String mDelete = "<-x-]";
 
 	/**
@@ -46,10 +43,6 @@ public class AlphaView extends View {
 		//setup Paint object
 		mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextPaint.setColor(0xffffffff);
-		
-		mBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mBgPaint.setColor(Color.GREEN);
-		mBgPaint.setStyle(Style.FILL);
 	}
 	
 	@Override
@@ -62,28 +55,19 @@ public class AlphaView extends View {
 	@Override
 	protected void onMeasure(int wMS, int hMS) {
 		int w = MeasureSpec.getSize(wMS);
-		//int h = MeasureSpec.getSize(hMS);
+		
 		if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
 		    mPortrait = false;
 		}
 		else {
 			mPortrait = true;
 		}
-		float minCharSize;
 		if(mPortrait) {
-			minCharSize = w / 20f;
+			mCharSize = w / 20f;
 		}
 		else {
-			minCharSize = w / 30f;
+			mCharSize = w / 30f;
 		}
-		
-		//might be able to skip this step
-		//if(minCharSize >= mFontSize) {
-			mCharSize = minCharSize;
-		//}
-		//else {
-		//	mCharSize = mFontSize;
-		//}
 		
 		int newH;
 		if(mPortrait) {
@@ -93,20 +77,12 @@ public class AlphaView extends View {
 			newH = (int) (mCharSize * 3);
 		}
 		setMeasuredDimension(w, newH);
-		/* Similar to the JumbleView, need to set char size and spacing
-		 * use the horizontal or portrait to determine size
-		 * portrait = 3x10, landscape = 2x14 or 2x15
-		Log.d("JumbleView", "width: " + String.valueOf(w));
-		
-		Log.d("JumbleView", "char size 2: " + String.valueOf(mCharSize));
-		setMeasuredDimension(w, h-200);*/
 	}
-
+	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		//filler for displaying element size - for dev testing only
-		//canvas.drawPaint(mBgPaint);
+		
 		mTextPaint.setTextSize(mCharSize);
 		//start at 0,0
 		float xPad = .5f * mCharSize;
@@ -114,7 +90,6 @@ public class AlphaView extends View {
 		float x = xPad;
 		if(mPortrait) {
 			for(char ch = 'A'; ch <= 'J'; ch++) {
-				//canvas.drawText(String, float, float, Paint)
 				canvas.drawText(String.valueOf(ch), x, y, mTextPaint);
 				x += 2 * mCharSize;
 			}
@@ -154,22 +129,18 @@ public class AlphaView extends View {
 	
 	/**
 	 * Takes the x and y values of a touch event and returns the appropriate character.
-	 * If the delete section is touched, return 'd'.
+	 * If the delete section is touched, return 0.
 	 * If no character is touched, return ' '.
 	 * @param x
 	 * @param y
 	 * @return char
 	 */
 	public char getLetter(float x, float y) {
-		//row = y / (mCharSize * 1.5f) rounded up
-		/*Log.d("alpha", "x = "+String.valueOf(x));
-		Log.d("alpha", "y = "+String.valueOf(y));
-		Log.d("alpha", "charSize = "+String.valueOf(mCharSize)); */
 		
 		int row = (int) Math.ceil(y / (mCharSize * 1.5f));
-		//Log.d("alpha", "row = "+String.valueOf(row));
+		
 		int charNum = (int) Math.ceil(x / (mCharSize * 2));
-		//Log.d("alpha", "charNum = "+String.valueOf(charNum));
+		
 		char ret;
 		if(mPortrait) {
 			if(row == 1) {
@@ -182,7 +153,7 @@ public class AlphaView extends View {
 				if(charNum <= 6)
 					ret = (char) ('U' + charNum - 1);
 				else if(charNum <= 8)
-					ret = ' ';
+					ret = 0;
 				else
 					ret = ' ';
 			}
@@ -195,7 +166,7 @@ public class AlphaView extends View {
 				if(charNum <= 11)
 					ret = (char) ('P' + charNum - 1);
 				else if(charNum <= 13)
-					ret = 'd';
+					ret = 0;
 				else
 					ret = ' ';
 			}
@@ -203,15 +174,23 @@ public class AlphaView extends View {
 		return ret;
 	}
 	
-	public static float getHeight(float w, Boolean portrait) {
+	/**
+	 * utility for other views to know how much space the keyboard will need.
+	 * TODO: make chars per row by orientation part of the class
+	 * @param w
+	 * @param portrait
+	 * @return the height of the element
+	 */
+	public static int getHeight(float w, Boolean portrait) {
 		float charSize;
 		if(portrait) {
 			charSize = w / 20f;
-			return charSize * 4;
+			//multiplying by 1.1 gives a little breathing room at the bottom
+			return (int) (charSize * 4 * 1.1);
 		}
 		else {
 			charSize = w / 30f;
-			return charSize * 3;
+			return (int) (charSize * 3 * 1.1);
 		}
 	}
 }

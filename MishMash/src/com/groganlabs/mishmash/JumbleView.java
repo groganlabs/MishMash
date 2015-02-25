@@ -1,25 +1,44 @@
 package com.groganlabs.mishmash;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 public class JumbleView extends View{
+	//Paint object for displaying text
 	private Paint mTextPaint;
+	
+	//Paint object for highlighting active text
 	private Paint mBgPaint;
-	//private Typeface mTypeface;
+	
 	private Context mContext;
+	
+	//width of the View
 	private int mW;
-	private float mCharSize, mFontSize, mYPad;
+	
+	//mCharSize is the final size of the printed characters
+	//mFontSize is an intermediately calculated size for the characters
+	private float mCharSize, mFontSize;
+	
+	//Padding between rows
+	private float mYPad = 20f;
+	
+	//each element is the padding on one side of a row
 	private int[] mXPad;
+	
+	//number of rows the game is broken into
 	private int mNumRows;
+	
+	//index of the "selected" character
 	private int mHighlighted = -1;
+	
+	//array of indices for the game/answer arrays to indicate
+	//where the line breaks are
+	//mRowIndices[0] = 0 (first row start), [1] = second row start, etc
 	private int[] mRowIndices;
-	public String test = "test";
 	
 	/**
 	 * constructor used to create view from code
@@ -63,19 +82,17 @@ public class JumbleView extends View{
 		}
 	}
 	
+	/**
+	 * create Paint objects
+	 */
 	private void init() {
+		//We want the characters to be a minimum size
 		mFontSize = 18 * mContext.getResources().getDisplayMetrics().density;
 		mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextPaint.setColor(0xffffffff);
-		Log.d("JumbleView", "char size 1: " + String.valueOf(mCharSize));
 		
 		mBgPaint = new Paint();
-		mBgPaint.setColor(Color.DKGRAY);
-		
-		//mTypeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
-		//mTypeface = Typeface.createFromAsset(mContext.getAssets(), "fonts/DEJAVUSANSMOMO.TTF");
-		//mBgPaint.setTypeface(mTypeface);
-		
+		mBgPaint.setColor(0xff000088);
 	}
 	
 	@Override
@@ -84,23 +101,31 @@ public class JumbleView extends View{
 		mW = w;
 	}
 	
+	/**
+	 * Establishing the size of the View and the characters 
+	 */
 	@Override
 	protected void onMeasure(int wMS, int hMS) {
 		int w = MeasureSpec.getSize(wMS);
 		int h = MeasureSpec.getSize(hMS);
-		float minCharSize = w / 30f;
-		Log.d("JumbleView", "width: " + String.valueOf(w));
-		if(minCharSize >= mFontSize) {
-			mCharSize = minCharSize;
+		
+		//determine char size by either maximum characters per row
+		//or by minimum size calculated by screen density (mFontSize)
+		//Actually, let's just use calc by screen density for now
+		/*float maxCharSize = w / 30f;
+		
+		if(maxCharSize >= mFontSize) {
+			mCharSize = maxCharSize;
 		}
-		else {
+		else {*/
 			mCharSize = mFontSize;
-		}
-		Log.d("JumbleView", "char size 2: " + String.valueOf(mCharSize));
-		//instead of subtracting a constant, figure out how many pixels based on orientation,
-		//screen width and pixel density. Need to figure out a way to do this without duplicating
-		//the same calculations in AlphaView
-		setMeasuredDimension(w, h-500);
+			mTextPaint.setTextSize(mCharSize);
+			
+		//}
+		
+		// Game takes up all available space except what the keyboard needs
+		int alphaHeight = AlphaView.getHeight(w, (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT));
+		setMeasuredDimension(w, h-alphaHeight);
 	}
 	
 	/**
@@ -112,8 +137,7 @@ public class JumbleView extends View{
 	 */
 	public int getTouched(float x, float y) {
 		int row = (int) Math.floor(y / (mCharSize * 2 + mYPad));
-		Log.d("jumbleView", "row touched: "+String.valueOf(row));
-		int retChar= 0, col;
+		int retChar = 0, col;
 		//touch registered below the game
 		if(row >= mNumRows) {
 			retChar = -1;
@@ -125,14 +149,20 @@ public class JumbleView extends View{
 			}
 			else {
 				col = (int) Math.floor((x - mXPad[row])/(mCharSize));
-				Log.d("jumbleView", "col touched: "+String.valueOf(col));
 				retChar += mRowIndices[row];
-				retChar += col - 1;
+				retChar += col;
 			}
 		}
 		return retChar;
 	}
 
+	/**
+	 * Set mHighlighted to the passed in value.
+	 * If the value is different, return true,
+	 * else return false to indicate no change 
+	 * @param h
+	 * @return
+	 */
 	public boolean setHighlight(int h) {
 		if(mHighlighted == h)
 			return false;
@@ -149,24 +179,19 @@ public class JumbleView extends View{
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		Log.d("jumbleView", "Drawing...");
-		Log.d("jumbleView", "Highlighted: "+String.valueOf(mHighlighted));
+
+		//var used to determine line breaks
 		int maxCharsPerRow = (int) ((int) mW / mCharSize);
 		
+		// var used to set max size of row based arrays
 		// TODO: set this based off of the size of the screen.
 		// could be moved to onMeasure?
 		int maxRows = 10;
 		
-		mTextPaint.setTextSize(mCharSize);
-		
-		/*char[][] gameArray = {{'B', 'C', 'J', 'M', ' ', 'M', 'A', 'Q', ' ', 'P', 'J', 'M'},
-				{'A', 'L', 'P', ' ', 'J', 'M', 'U', 'I', ' ', 'U', 'O', 'N', 'Y'},
-				{'M', 'A', 'J', 'M', 'S', 'O', 'N', ' ', 'I', 'S', 'T', 'S', 'R'}};
-		char[][] answerArray = new char[3][];*/
+		// We want to get the required game elements each time we draw
 		String gameStr = ( (JumbleActivity) mContext).getSolutionStr();
 		char[] gameArray = ( (JumbleActivity) mContext).getPuzzle();
 		char[] answerArray = ( (JumbleActivity) mContext).getAnswer();
-		char[] solutionArray = ( (JumbleActivity) mContext).getSolution();
 		
 		int ii, lastSpace = 0, rowSize = 0;
 		mNumRows = 0;
@@ -176,7 +201,7 @@ public class JumbleView extends View{
 		mRowIndices[0] = 0;
 		
 		// Loop through and find the line breaks - maybe move this to onMeasure?
-		// also determine how many lines we actually ave
+		// also determine how many lines we actually have
 		while(true) {
 			if(mRowIndices[mNumRows] + maxCharsPerRow >= gameArray.length) {
 				mNumRows++;
@@ -193,8 +218,6 @@ public class JumbleView extends View{
 				mRowIndices[mNumRows] = lastSpace;
 			}
 		}
-		
-		mYPad = 20f;
 		
 		mXPad = new int[mNumRows];
 		String answer;
