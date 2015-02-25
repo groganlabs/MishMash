@@ -78,11 +78,26 @@ public class JumbleActivity extends Activity {
 		
 		alpha.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
+				//result of the keyboard touch
 				char res = ((AlphaView) v).getLetter(event.getX(), event.getY());
-				//if we've highlighted a letter
 				int curChar;
+				
+				//if we've highlighted a letter
 				if((curChar = jumble.getHighlight()) >= 0) {
 					answerArr[curChar] = res;
+					
+					//if we aren't deleting
+					if(res != 0) {
+						curChar++;
+						//advance the highlight to the next word character
+						while(!isWordChar(solutionArr, curChar)) {
+							curChar++;
+							if(curChar == solutionArr.length)
+								curChar = 0;
+						}
+						
+						jumble.setHighlight(curChar);
+					}
 					jumble.invalidate();
 					//if answerArr == solutionArr, notify player and add to db
 					if(Arrays.equals(answerArr, solutionArr)) {
@@ -245,5 +260,16 @@ public class JumbleActivity extends Activity {
 		bundle.putCharArray("solutionArr", solutionArr);
 		bundle.putCharArray("puzzleArr", puzzleArr);
 		bundle.putCharArray("answerArr", answerArr);
+	}
+	
+	private boolean isWordChar(char[] charArray, int ii) {
+		if(ii >= charArray.length) {
+			return false;
+		}
+		if(((charArray[ii] < 'A' || charArray[ii] > 'Z') && charArray[ii] != '\'') || (charArray[ii] == '-' && charArray[ii-1] == ' ')) {
+			return false;
+		}
+		else
+			return true;
 	}
 }
