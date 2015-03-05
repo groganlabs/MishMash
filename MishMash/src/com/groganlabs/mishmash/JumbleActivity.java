@@ -2,6 +2,7 @@ package com.groganlabs.mishmash;
 
 import java.util.Arrays;
 import java.util.Random;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,7 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+
 import com.groganlabs.mishmash.JumbleView;
 
 public class JumbleActivity extends Activity {
@@ -21,6 +22,7 @@ public class JumbleActivity extends Activity {
 	// puzzle - the solution converted into the puzzle played
 	private char[] puzzleArr, answerArr, solutionArr;
 	private JumbleView jumble;
+	private boolean gameChanged = false;
 	
 	@SuppressLint("ClickableViewAccessibility")
 	@Override
@@ -48,17 +50,13 @@ public class JumbleActivity extends Activity {
 			solutionArr = savedInstanceState.getCharArray("solutionArr");
 			puzzleArr = savedInstanceState.getCharArray("puzzleArr");
 			answerArr = savedInstanceState.getCharArray("answerArr");
+			gameChanged = savedInstanceState.getBoolean("gameChanged");
 		}
 		
 		LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 		
 		LayoutParams lp = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-		
-		TextView title = new TextView(this);
-		title.setText("Jumble");
-		title.setLayoutParams(lp);
-		layout.addView(title);
 		
 		jumble = new JumbleView(this);
 		jumble.setLayoutParams(lp);
@@ -89,6 +87,7 @@ public class JumbleActivity extends Activity {
 					//if we aren't deleting
 					if(res != 0) {
 						curChar++;
+						gameChanged = true;
 						//advance the highlight to the next word character
 						while(!isWordChar(solutionArr, curChar)) {
 							curChar++;
@@ -260,6 +259,7 @@ public class JumbleActivity extends Activity {
 		bundle.putCharArray("solutionArr", solutionArr);
 		bundle.putCharArray("puzzleArr", puzzleArr);
 		bundle.putCharArray("answerArr", answerArr);
+		bundle.putBoolean("gameChanged", gameChanged);
 	}
 	
 	private boolean isWordChar(char[] charArray, int ii) {
