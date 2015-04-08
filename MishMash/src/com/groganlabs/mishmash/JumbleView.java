@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 public class JumbleView extends View{
@@ -92,7 +93,7 @@ public class JumbleView extends View{
 		mTextPaint.setColor(0xffffffff);
 		
 		mBgPaint = new Paint();
-		mBgPaint.setColor(0xff000088);
+		mBgPaint.setColor(0xff00ffff);
 	}
 	
 	@Override
@@ -164,9 +165,12 @@ public class JumbleView extends View{
 	 * @return
 	 */
 	public boolean setHighlight(int h) {
-		if(mHighlighted == h)
+		if(mHighlighted == h) {
+			Log.d("jumbleView", "same highlight");
 			return false;
+		}
 		else {
+			Log.d("jumbleView", "new highlight");
 			mHighlighted = h;
 			return true;
 		}
@@ -189,10 +193,11 @@ public class JumbleView extends View{
 		int maxRows = 10;
 		
 		// We want to get the required game elements each time we draw
-		String gameStr = ( (JumbleActivity) mContext).getSolutionStr();
-		char[] gameArray = ( (JumbleActivity) mContext).getPuzzle();
-		char[] answerArray = ( (JumbleActivity) mContext).getAnswer();
-		
+		JumbleGame game = ( (JumbleActivity) mContext).getGame();
+		String gameStr = game.getSolution();
+		char[] gameArray = game.getPuzzleArr();
+		char[] answerArray = game.getAnswerArr();
+		//Log.d("jumbleView", "puzzle: " + String.valueOf(gameArray));
 		int ii, lastSpace = 0, rowSize = 0;
 		mNumRows = 0;
 		
@@ -202,7 +207,7 @@ public class JumbleView extends View{
 		
 		// Loop through and find the line breaks - maybe move this to onMeasure?
 		// also determine how many lines we actually have
-		while(true) {
+		while(mNumRows < maxRows) {
 			if(mRowIndices[mNumRows] + maxCharsPerRow >= gameArray.length) {
 				mNumRows++;
 				break;
@@ -228,16 +233,16 @@ public class JumbleView extends View{
 		//drawing the game, line by line
 		//Starting by finding the margin for the row
 		for(ii = 0; ii < mNumRows; ii++) {
-			//first row
-			if(ii == 0) {
-				rowSize = mRowIndices[ii+1] - mRowIndices[ii];
-				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2);
-			}
 			//last row
-			else if(ii == mNumRows - 1) {
+			if(ii == mNumRows - 1) {
 				//rowSize = gameArray.length - mRowIndices[ii] - 1;
 				rowSize = gameArray.length - mRowIndices[ii];
-				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2 - mCharSize);
+				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2);
+			}
+			//first row
+			else if(ii == 0) {
+				rowSize = mRowIndices[ii+1] - mRowIndices[ii];
+				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2);
 			}
 			//middle rows
 			else {
@@ -245,6 +250,7 @@ public class JumbleView extends View{
 				rowSize = mRowIndices[ii+1] - mRowIndices[ii];
 				mXPad[ii] = (int) ((mW - (rowSize * mCharSize))/2 - mCharSize);
 			}
+			///Log.d("jumbleView", "RowSize: " + rowSize);
 			
 			//drawing the characters for the line
 			for(jj = 0; jj < rowSize; jj++) {
@@ -270,6 +276,7 @@ public class JumbleView extends View{
 					
 					//highlighting the selected letter
 					if(mRowIndices[ii]+jj == mHighlighted) {
+						Log.d("jumbleView", "This should be highlighted");
 						canvas.drawRect(mXPad[ii]+(mCharSize*jj), mCharSize*(2f*ii+1)+(mYPad*ii), mXPad[ii]+(mCharSize*jj) + mCharSize, mCharSize*(2f*ii+1)+(mYPad*ii)-mCharSize, mBgPaint);
 					}
 					canvas.drawText(answer, mXPad[ii]+(mCharSize*jj)+aCharPadding, mCharSize*(2f*ii+1)+(mYPad*ii), mTextPaint);

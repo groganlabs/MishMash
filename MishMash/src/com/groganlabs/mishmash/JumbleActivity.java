@@ -1,27 +1,20 @@
 package com.groganlabs.mishmash;
 
-import java.util.Arrays;
-import java.util.Random;
-
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
+import android.support.v4.app.DialogFragment;
 
 import com.groganlabs.mishmash.JumbleView;
 
-public class JumbleActivity extends Activity {
+public class JumbleActivity extends GameActivity {
 
-	private String solutionStr;
-	// solution - the original phrase
-	// answer - the player's answers
-	// puzzle - the solution converted into the puzzle played
-	private char[] puzzleArr, answerArr, solutionArr;
-	private JumbleView jumble;
+	private JumbleGame mGame;
+	private JumbleView mView;
 	private boolean gameChanged = false;
 	
 	@SuppressLint("ClickableViewAccessibility")
@@ -31,84 +24,108 @@ public class JumbleActivity extends Activity {
 		
 		//see if we have a saved instance with a solution, if not we need to create one
 		//with the accompanying arrays
-		if(savedInstanceState == null || savedInstanceState.getCharArray("solutionArr") == null) {
-			solutionStr = "THIS IS A TEST. THIS IS ONLY A TEST. PLEASE DO NOT ADJUST YOUR SCREENS.";
-			solutionArr = solutionStr.toCharArray();
-			puzzleArr = new char[solutionArr.length];
-			answerArr = new char[solutionArr.length];
-			createGame();
-			
-			for(int ii = 0; ii < solutionArr.length; ii++) {
-				if(solutionArr[ii] < 'A' || solutionArr[ii] > 'Z') {
-					answerArr[ii] = solutionArr[ii];
-				}
+		//if(savedInstanceState == null || savedInstanceState.getCharArray("solutionArr") == null) {
+		if(savedInstanceState == null || savedInstanceState.getParcelable(GAME_TAG) == null) {
+			try {
+				mGame = new JumbleGame(-1, -1, this);
+			} catch (Exception e1) {
+				noMoreGames();
 			}
+			
 		}
 		//we do have game information saved, so we'll use that
 		else {
-			solutionStr = savedInstanceState.getString("solutionStr");
-			solutionArr = savedInstanceState.getCharArray("solutionArr");
-			puzzleArr = savedInstanceState.getCharArray("puzzleArr");
-			answerArr = savedInstanceState.getCharArray("answerArr");
+			mGame = savedInstanceState.getParcelable(GAME_TAG);
+			mGame.setContext(this);
 			gameChanged = savedInstanceState.getBoolean("gameChanged");
 		}
 		
-		LinearLayout layout = new LinearLayout(this);
-		layout.setOrientation(LinearLayout.VERTICAL);
-		
-		LayoutParams lp = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
-		
-		jumble = new JumbleView(this);
-		jumble.setLayoutParams(lp);
-		layout.addView(jumble);
-		
-		AlphaView alpha = new AlphaView(this);
-		alpha.setLayoutParams(lp);
-		layout.addView(alpha);
-		
-		setContentView(layout);
-		
-		jumble.setOnTouchListener(new View.OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent e) {
-				return gameTouch(e.getX(), e.getY());
-			}
-		});
-		
-		alpha.setOnTouchListener(new View.OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent event) {
-				//result of the keyboard touch
-				char res = ((AlphaView) v).getLetter(event.getX(), event.getY());
-				int curChar;
-				
-				//if we've highlighted a letter
-				if((curChar = jumble.getHighlight()) >= 0) {
-					answerArr[curChar] = res;
+		if(mGame != null) {
+			LinearLayout layout = new LinearLayout(this);
+			layout.setOrientation(LinearLayout.VERTICAL);
+			
+			LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			
+			mView = new JumbleView(this);
+			mView.setLayoutParams(lp);
+			layout.addView(mView);
+			
+			AlphaView alpha = new AlphaView(this);
+			alpha.setLayoutParams(lp);
+			layout.addView(alpha);
+			
+			setContentView(layout);
+			
+			mView.setOnTouchListener(new View.OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent e) {
+					return gameTouch(e.getX(), e.getY());
+				}
+			});
+			
+			alpha.setOnTouchListener(new View.OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent event) {
+					//result of the keyboard touch
+					char res = ((AlphaView) v).getLetter(event.getX(), event.getY());
+					int curChar;
 					
-					//if we aren't deleting
-					if(res != 0) {
-						curChar++;
-						gameChanged = true;
-						//advance the highlight to the next word character
-						while(!isWordChar(solutionArr, curChar)) {
-							curChar++;
-							if(curChar == solutionArr.length)
-								curChar = 0;
+					//if we have a highlighted letter
+					if((curChar = mView.getHighlight()) >= 0) {
+						if(res != '<' && res != '>') {
+							mGame.setAnswerChar(res, curChar);
 						}
 						
-						jumble.setHighlight(curChar);
+						//if we aren't deleting
+						if(res != 0 && res != '<' && res != '>') {
+							curChar++;
+							gameChanged = true;
+							//advance the highlight to the next word character
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar++;
+								if(curChar == mGame.getSolutionArr().length)
+									curChar = 0;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						else if(res == '>') {
+							curChar++;
+							if(curChar == mGame.getSolutionArr().length)
+								curChar = 0;
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar++;
+								if(curChar == mGame.getSolutionArr().length)
+									curChar = 0;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						else if(res == '<') {
+							curChar--;
+							if(curChar < 0)
+								curChar = mGame.getSolutionArr().length-1;
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar--;
+								if(curChar < 0)
+									curChar = mGame.getSolutionArr().length-1;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						mView.invalidate();
+						//if answerArr == solutionArr, notify player and add to db
+						if(mGame.gameWon()) {
+							//TODO: db updating
+							Log.d("jumble", "You win!");
+							DialogFragment frag = new YouWonDialog();
+							frag.show(getSupportFragmentManager(), GAME_TAG);
+						}
 					}
-					jumble.invalidate();
-					//if answerArr == solutionArr, notify player and add to db
-					if(Arrays.equals(answerArr, solutionArr)) {
-						//TODO: notification and db updating
-						Log.d("jumble", "You win!");
-					}
+					//If no letter is selected, do nothing
+					
+					return false;
 				}
-				//If no letter is selected, do nothing
-				
-				return false;
-			}
-		});
+			});
+		}
 	}
 
 	/**
@@ -124,127 +141,38 @@ public class JumbleActivity extends Activity {
 		//Tell the view to remove the highlight and draw
 		//Else
 		//Get the letter selected - index of the array
-		//Save the index in the activity
 		//Have the view highlight that character and draw
-		int touched = jumble.getTouched(x, y);
+		int touched = mView.getTouched(x, y);
 		int newC;
 		
 		//no game letter was touched
 		if(touched < 0) {
+			Log.d("jumble", "no letter");
 			newC = -1;
 		}
 		//should never happen, but just in case
-		else if(touched >= solutionStr.length()) {
+		else if(touched >= mGame.getSolution().length()) {
+			Log.d("jumble", "too long");
 			newC = -1;
 		}
 		//the user touched a spot within the game
 		else {
-			if(solutionArr[touched] >= 'A' && solutionArr[touched] <= 'Z')
+			Log.d("jumble", "in game");
+			if(mGame.getSolutionArr()[touched] >= 'A' && mGame.getSolutionArr()[touched] <= 'Z')
 				newC = touched;
 			else
 				newC = -1;
 		}
-		
+		Log.d("jumble", "newC: "+newC);
 		//We only need to redraw if the highlighting is changing
-		Boolean draw = jumble.setHighlight(newC);
-		if(draw)
-			jumble.invalidate();
+		if(mView.setHighlight(newC))
+			mView.invalidate();
 		
 		return false;
 	}
 	
-	/**
-	 * returns the solution array for the game
-	 * @return
-	 */
-	public char[] getSolution() {
-		return solutionArr;
-	}
-	
-	/**
-	 * returns the answer array (user's input) for the game
-	 * @return
-	 */
-	public char[] getAnswer() {
-		return answerArr;
-	}
-	
-	/**
-	 * returns the puzzle array for the game
-	 * @return
-	 */
-	public char[] getPuzzle() {
-		return puzzleArr;
-	}
-	
-	/**
-	 * returns the solution string for the game
-	 * @return
-	 */
-	public String getSolutionStr() {
-		return solutionStr;
-	}
-	
-	/**
-	 * Create the puzzle by copying non-word characters and mixing up
-	 * the words in the solution array.
-	 */
-	private void createGame() {
-		
-		int start = 0;
-		int end;
-		for(int ii = 0; ii < solutionArr.length; ii++) {
-			// any non-word character
-			// For a -, the char before should be ' ' otherwise it's in a word
-			if(((solutionArr[ii] < 'A' || solutionArr[ii] > 'Z') && solutionArr[ii] != '\'') || (solutionArr[ii] == '-' && solutionArr[ii-1] == ' ')) {
-				puzzleArr[ii] = solutionArr[ii];
-				if(start == ii) {
-					start++;
-				}
-				else {
-					end = ii - 1;
-					mixupWord(start, end, puzzleArr, solutionArr);
-					start = ii+1;
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Randomly mixes up the order of a word located in solution from
-	 * solution[start] to solution[end] inclusive and copies it to
-	 * the game array in the same indices.
-	 * @param start index of the first letter of the word
-	 * @param end index of the last letter of the word
-	 * @param game array the mixed up word is copied to
-	 * @param solution source of the word
-	 */
-	public void mixupWord(int start, int end, char[] game, char[] solution) {
-		//doesn't make sense, let's just get out
-		if(start > end ) 
-			return;
-		//one letter word, no mixing needed
-		else if(start == end) {
-			game[start] = solution[start];
-			return;
-		}
-		
-		Random rand = new Random();
-		int length = end - start + 1;
-		int[] used = new int[length];
-		int newLetter;
-		
-		for(int ii = 0; ii <length; ii ++) {
-			newLetter = rand.nextInt(length);
-			while(used[newLetter] == 1) {
-				newLetter++;
-				if(newLetter == length) {
-					newLetter = 0;
-				}
-			}
-			used[newLetter] = 1;
-			game[start + ii] = solution[start + newLetter];
-		}
+	public JumbleGame getGame() {
+		return mGame;
 	}
 	
 	/**
@@ -255,21 +183,59 @@ public class JumbleActivity extends Activity {
 	protected void onSaveInstanceState(Bundle bundle) {
 		super.onSaveInstanceState(bundle);
 		
-		bundle.putString("solutionStr", solutionStr);
-		bundle.putCharArray("solutionArr", solutionArr);
-		bundle.putCharArray("puzzleArr", puzzleArr);
-		bundle.putCharArray("answerArr", answerArr);
+		bundle.putParcelable(GAME_TAG, mGame);
 		bundle.putBoolean("gameChanged", gameChanged);
 	}
 	
+	/**
+	 * checks to see if the character is part of a word.
+	 * For now, that's just A-Z, but could include ' or - later.
+	 * @param charArray Array of characters
+	 * @param ii Index of the character to check
+	 * @return True if the character is part of the word, or false
+	 */
 	private boolean isWordChar(char[] charArray, int ii) {
-		if(ii >= charArray.length) {
+		if(ii >= charArray.length || ii < 0) {
 			return false;
 		}
-		if(((charArray[ii] < 'A' || charArray[ii] > 'Z') && charArray[ii] != '\'') || (charArray[ii] == '-' && charArray[ii-1] == ' ')) {
-			return false;
+		//if(((charArray[ii] < 'A' || charArray[ii] > 'Z') && charArray[ii] != '\'') || (charArray[ii] == '-' && charArray[ii-1] == ' ')) {
+		if((charArray[ii] >= 'A' && charArray[ii] <= 'Z')) {
+			return true;
 		}
 		else
-			return true;
+			return false;
 	}
+
+	/**
+	 * Start a new game. Doesn't do anything with the old one.
+	 */
+	@Override
+	public void startNewGame() {
+		// Create a new game
+		try {
+			mGame = new JumbleGame(-1, -1, this);
+		} catch (Exception e) {
+			noMoreGames();
+		}
+		gameChanged = false;
+		mView.invalidate();
+	}
+
+	@Override
+	public void restartGame() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void showHint() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onRestartClick(DialogFragment dialog) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

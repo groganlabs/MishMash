@@ -14,7 +14,9 @@ public class AlphaView extends View {
 	int mH;
 	float mFontSize, mCharSize;
 	private Paint mTextPaint;
-	private String mDelete = "<-x-]";
+	//private String mDelete = "<-x-]";
+	private String mDelete = "_";
+
 
 	/**
 	 * Constructor to create view from code
@@ -71,7 +73,7 @@ public class AlphaView extends View {
 		
 		int newH;
 		if(mPortrait) {
-			newH = (int) (mCharSize * 4);
+			newH = (int) (mCharSize * 4 * 1.2);
 		}
 		else {
 			newH = (int) (mCharSize * 3);
@@ -109,6 +111,10 @@ public class AlphaView extends View {
 			}
 			//draw delete character
 			canvas.drawText(mDelete, x, y, mTextPaint);
+			x += 2 * mCharSize;
+			canvas.drawText("<", x, y, mTextPaint);
+			x += 2 * mCharSize;
+			canvas.drawText(">", x, y, mTextPaint);
 		}
 		else {
 			for(char ch = 'A'; ch <= 'O'; ch++) {
@@ -124,6 +130,10 @@ public class AlphaView extends View {
 			}
 			//again, draw delete character
 			canvas.drawText(mDelete, x, y, mTextPaint);
+			x += 2 * mCharSize;
+			canvas.drawText("<", x, y, mTextPaint);
+			x += 2 * mCharSize;
+			canvas.drawText(">", x, y, mTextPaint);
 		}
 	}	
 	
@@ -152,8 +162,12 @@ public class AlphaView extends View {
 			else {
 				if(charNum <= 6)
 					ret = (char) ('U' + charNum - 1);
-				else if(charNum <= 8)
+				else if(charNum == 7)
 					ret = 0;
+				else if(charNum == 8)
+					ret = '<';
+				else if(charNum == 9)
+					ret = '>';
 				else
 					ret = ' ';
 			}
@@ -165,8 +179,13 @@ public class AlphaView extends View {
 			else {
 				if(charNum <= 11)
 					ret = (char) ('P' + charNum - 1);
-				else if(charNum <= 13)
+				// delete = 12th char
+				else if(charNum == 12)
 					ret = 0;
+				else if(charNum == 13)
+					ret = '<';
+				else if(charNum == 14)
+					ret = '>';
 				else
 					ret = ' ';
 			}
@@ -185,8 +204,8 @@ public class AlphaView extends View {
 		float charSize;
 		if(portrait) {
 			charSize = w / 20f;
-			//multiplying by 1.1 gives a little breathing room at the bottom
-			return (int) (charSize * 4 * 1.1);
+			//multiplying by 1.2 gives a little breathing room at the bottom
+			return (int) (charSize * 4 * 1.2);
 		}
 		else {
 			charSize = w / 30f;

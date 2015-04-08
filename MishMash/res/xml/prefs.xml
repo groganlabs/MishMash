@@ -9,10 +9,16 @@
             android:defaultValue="false"
         />
         <CheckBoxPreference 
-            android:key="PREF_TIMED"
-            android:title="@string/timedPref"
-            android:summary="@string/timedPrefSum"
+            android:key="PREF_REUSE"
+            android:title="@string/reusePref"
+            android:summary="@string/reusePrefSum"
             android:defaultValue="true"
+        />
+        <CheckBoxPreference
+            android:key="PREF_REPLAY"
+            android:title="@string/replayPref"
+            android:summary="@string/replayPrefSum"
+            android:defaultValue="false"
         />
     </PreferenceCategory>
 
