@@ -3,6 +3,7 @@ package com.groganlabs.mishmash;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -93,7 +94,9 @@ public class JumbleView extends View{
 		mTextPaint.setColor(0xffffffff);
 		
 		mBgPaint = new Paint();
-		mBgPaint.setColor(0xff00ffff);
+		//mBgPaint.setColor(0xff00ffff);
+		mBgPaint.setColor(Color.BLUE);
+		mBgPaint.setStyle(Paint.Style.FILL);
 	}
 	
 	@Override
@@ -166,11 +169,9 @@ public class JumbleView extends View{
 	 */
 	public boolean setHighlight(int h) {
 		if(mHighlighted == h) {
-			Log.d("jumbleView", "same highlight");
 			return false;
 		}
 		else {
-			Log.d("jumbleView", "new highlight");
 			mHighlighted = h;
 			return true;
 		}
@@ -276,11 +277,30 @@ public class JumbleView extends View{
 					
 					//highlighting the selected letter
 					if(mRowIndices[ii]+jj == mHighlighted) {
-						Log.d("jumbleView", "This should be highlighted");
-						canvas.drawRect(mXPad[ii]+(mCharSize*jj), mCharSize*(2f*ii+1)+(mYPad*ii), mXPad[ii]+(mCharSize*jj) + mCharSize, mCharSize*(2f*ii+1)+(mYPad*ii)-mCharSize, mBgPaint);
+						/*Log.d("jumbleView", "This should be highlighted");
+						Log.d("jumbleView", "Left: "+(mXPad[ii]+(mCharSize*jj)));
+						Log.d("jumbleView", "Top: "+(mCharSize*(2f*ii+1)+(mYPad*ii)-mCharSize));
+						Log.d("jumbleView", "Right: "+(mXPad[ii]+(mCharSize*jj) - mCharSize));
+						Log.d("jumbleView", "Bottom: "+(mCharSize*(2f*ii+1)+(mYPad*ii)));
+						Log.d("jumbleView", "Bottom pt 1: "+(mCharSize*(2f*ii+1)));
+						Log.d("jumbleView", "Bottom pt 2: "+(mYPad*ii));
+						Log.d("jumbleView", "Bottom pt 3: "+(mCharSize));*/
+						
+						canvas.drawRect(mXPad[ii]+(mCharSize*jj), 
+								mCharSize*(2f*ii+1)+(mYPad*ii)-mCharSize, 
+								mXPad[ii]+(mCharSize*jj) + mCharSize, 
+								mCharSize*(2f*ii+1)+(mYPad*ii), 
+								mBgPaint);
 					}
-					canvas.drawText(answer, mXPad[ii]+(mCharSize*jj)+aCharPadding, mCharSize*(2f*ii+1)+(mYPad*ii), mTextPaint);
-					canvas.drawText(gameArray, mRowIndices[ii]+jj, 1, mXPad[ii]+(mCharSize*jj)+gCharPadding, mCharSize*(2f*ii+2)+(mYPad*ii), mTextPaint);
+					canvas.drawText(answer, 
+							mXPad[ii]+(mCharSize*jj)+aCharPadding, 
+							mCharSize*(2f*ii+1)+(mYPad*ii), 
+							mTextPaint);
+					canvas.drawText(gameArray, 
+							mRowIndices[ii]+jj, 1, 
+							mXPad[ii]+(mCharSize*jj)+gCharPadding, 
+							mCharSize*(2f*ii+2)+(mYPad*ii), 
+							mTextPaint);
 				}
 			}
 		}

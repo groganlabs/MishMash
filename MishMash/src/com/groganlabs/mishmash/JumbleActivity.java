@@ -147,23 +147,20 @@ public class JumbleActivity extends GameActivity {
 		
 		//no game letter was touched
 		if(touched < 0) {
-			Log.d("jumble", "no letter");
 			newC = -1;
 		}
 		//should never happen, but just in case
 		else if(touched >= mGame.getSolution().length()) {
-			Log.d("jumble", "too long");
 			newC = -1;
 		}
 		//the user touched a spot within the game
 		else {
-			Log.d("jumble", "in game");
 			if(mGame.getSolutionArr()[touched] >= 'A' && mGame.getSolutionArr()[touched] <= 'Z')
 				newC = touched;
 			else
 				newC = -1;
 		}
-		Log.d("jumble", "newC: "+newC);
+		
 		//We only need to redraw if the highlighting is changing
 		if(mView.setHighlight(newC))
 			mView.invalidate();
