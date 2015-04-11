@@ -139,11 +139,6 @@ public class MishMashDB extends SQLiteOpenHelper {
 		Log.d("db", "SQL: " + query);
 		db.execSQL(query);
 		
-		//ContentValues values = new ContentValues();
-		//values.put(COL_COMPLETED, COL_COMPLETED + " & " + game.getGameType());
-		//String where = GAME_TABLE_ID + " = " + game.getGameId();
-		//db.update(GAME_TABLE, values, where, null);
-		
 		//for debugging
 		/*String[] columns = {GAME_TABLE_ID, COL_GAME, COL_COMPLETED};
 		Cursor res = db.query(GAME_TABLE, columns, where, null, null, null, null);

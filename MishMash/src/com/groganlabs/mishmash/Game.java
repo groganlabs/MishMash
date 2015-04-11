@@ -1,6 +1,7 @@
 package com.groganlabs.mishmash;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import android.content.Context;
 import android.os.Parcel;
@@ -68,6 +69,51 @@ public abstract class Game implements Parcelable {
 	abstract protected void createGame();
 	
 	abstract public void clearAnswer();
+	
+	public void saveGame() {
+		
+	}
+	
+	public int getHint() {
+		//count how many indices are blank or have a wrong answer
+		int numAvail = 0, lastAvail = 0;
+		for(int ii = 0; ii < answerArr.length; ii++) {
+			if(answerArr[ii] != solutionArr[ii]) {
+				numAvail++;
+				lastAvail = ii;
+			}
+		}
+		Log.d("game", "numAvail: "+numAvail);
+		
+		//shouldn't happen, but just in case
+		if(numAvail == 0) {
+			Log.d("game", "Oops!");
+			return -1;
+		}
+		
+		if(numAvail == 1) {
+			answerArr[lastAvail] = solutionArr[lastAvail];
+			return lastAvail;
+		}
+		
+		//get a random number 
+		Random rand = new Random();
+		int hint = rand.nextInt(numAvail);
+		Log.d("game", "hint: "+hint);
+		int jj = 0;
+		//Go back through the arrays, counting through the
+		//available indices until we get to the hint'th element
+		for(int ii = 0; ii < answerArr.length; ii++) {
+			if(jj == hint) {
+				answerArr[jj] = solutionArr[jj];
+				break;
+			}
+			if(answerArr[ii] != solutionArr[ii])
+				jj++;
+			
+		}
+		return jj;
+	}
 	
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(solution);
