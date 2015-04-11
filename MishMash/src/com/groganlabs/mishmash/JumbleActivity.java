@@ -112,12 +112,9 @@ public class JumbleActivity extends GameActivity {
 							mView.setHighlight(curChar);
 						}
 						mView.invalidate();
-						//if answerArr == solutionArr, notify player and add to db
 						if(mGame.gameWon()) {
-							//TODO: db updating
 							Log.d("jumble", "You win!");
-							DialogFragment frag = new YouWonDialog();
-							frag.show(getSupportFragmentManager(), GAME_TAG);
+							gameWon();
 						}
 					}
 					//If no letter is selected, do nothing
@@ -126,6 +123,11 @@ public class JumbleActivity extends GameActivity {
 				}
 			});
 		}
+	}
+
+	protected void gameWon() {
+		DialogFragment frag = new YouWonDialog();
+		frag.show(getSupportFragmentManager(), GAME_TAG);
 	}
 
 	/**
@@ -218,20 +220,63 @@ public class JumbleActivity extends GameActivity {
 		mView.invalidate();
 	}
 
-	@Override
-	public void restartGame() {
-		// TODO Auto-generated method stub
-		
+	/**
+	 * New game was selected from the menu
+	 * If there's a game in progress, ask to 
+	 * save. If the current game is won, or the current
+	 * game hasn't been changed, just start the
+	 * new game.
+	 */
+	protected void menuNewGame() {
+		if(!mGame.gameWon() && gameChanged) {
+			DialogFragment frag = new NewGameFromMenu();
+			frag.show(getSupportFragmentManager(), GAME_TAG);
+		}
+		else
+			startNewGame();
 	}
-
+	
+	protected void goToMainMenu() {
+		if(!mGame.gameWon() && gameChanged) {
+			DialogFragment frag = new GoToMainMenuDialog();
+			frag.show(getSupportFragmentManager(), GAME_TAG);
+		}
+		else
+			finish();
+	}
+	
 	@Override
 	public void showHint() {
-		// TODO Auto-generated method stub
-		
+		int hint = mGame.getHint();
+		mView.setHighlight(hint);
+		mView.invalidate();
+		if(mGame.gameWon())
+			gameWon();
 	}
 
 	public void onRestartClick(DialogFragment dialog) {
-		// TODO Auto-generated method stub
+		mGame.clearAnswer();
+		mView.setHighlight(-1);
+		mView.invalidate();
+	}
+
+	public void onNewGameSave(DialogFragment dialog) {
+		mGame.saveGame();
+		startNewGame();
+	}
+
+	public void onNewGameNoSave(DialogFragment dialog) {
+		startNewGame();
+		
+	}
+
+	public void onMainMenuSave(DialogFragment dialog) {
+		mGame.saveGame();
+		finish();
+	}
+
+	public void onMainMenuNoSave(DialogFragment dialog) {
+		finish();
 		
 	}
 

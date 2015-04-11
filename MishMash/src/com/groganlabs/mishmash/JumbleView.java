@@ -292,6 +292,7 @@ public class JumbleView extends View{
 								mCharSize*(2f*ii+1)+(mYPad*ii), 
 								mBgPaint);
 					}
+					
 					canvas.drawText(answer, 
 							mXPad[ii]+(mCharSize*jj)+aCharPadding, 
 							mCharSize*(2f*ii+1)+(mYPad*ii), 

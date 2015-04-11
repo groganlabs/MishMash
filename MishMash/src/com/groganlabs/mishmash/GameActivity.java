@@ -3,20 +3,21 @@ package com.groganlabs.mishmash;
 import android.content.Intent;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.groganlabs.mishmash.GoToMainMenuDialog.MainMenuListener;
+import com.groganlabs.mishmash.NewGameFromMenu.NewGameListener;
 import com.groganlabs.mishmash.NoMoreGamesDialog.NoMoreGamesListener;
 import com.groganlabs.mishmash.RestartDialog.RestartListener;
 import com.groganlabs.mishmash.YouWonDialog.YouWonListener;
 
 public abstract class GameActivity extends ActionBarActivity implements
-		NoMoreGamesListener, YouWonListener, RestartListener {
+		NoMoreGamesListener, YouWonListener, RestartListener, NewGameListener, MainMenuListener  {
 	
 	public static String GAME_TAG = "game";
-	
-	public Game mGame;
 	
 	/**
 	 * Generates the dialog if there are no games to build
@@ -88,6 +89,7 @@ public abstract class GameActivity extends ActionBarActivity implements
 	 * if yes then use game.clearAnswer();
 	 */
 	public void restartGame() {
+		Log.d("game", "showing dialog");
 		DialogFragment frag = new RestartDialog();
 		frag.show(getSupportFragmentManager(), GAME_TAG);
 	}
@@ -98,24 +100,21 @@ public abstract class GameActivity extends ActionBarActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.menu_restart:
+			Log.d("game", "restart");
 			restartGame();
 			return true;
 		case R.id.menu_hint:
 			showHint();
 			return true;
 		case R.id.menu_main:
+			goToMainMenu();
 			// If the current game is !gameWone
 			// Ask user if they want to save
 			// if yes, save
 			// finish activity
 			return true;
 		case R.id.menu_new_game:
-			if(!mGame.gameWon()) {
-				//show dialog - does the player want
-				//to save their current game?
-			}
-			else
-				startNewGame();
+			menuNewGame();
 			return true;
 		case R.id.menu_settings:
 			Intent intent = new Intent(this, MishMashSettings.class);
@@ -127,6 +126,11 @@ public abstract class GameActivity extends ActionBarActivity implements
 		
 	}
 	
+	abstract protected void menuNewGame();
+	
+	
+	abstract protected void goToMainMenu();
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();

@@ -37,7 +37,7 @@ public class NoMoreGamesDialog extends DialogFragment {
             		  mListener.onNoMoreNeutralClick(NoMoreGamesDialog.this);
             	   }
                })
-               .setNegativeButton("Back to Menu", new DialogInterface.OnClickListener() {
+               .setNegativeButton("Main Menu", new DialogInterface.OnClickListener() {
                    public void onClick(DialogInterface dialog, int id) {
                 	   mListener.onNoMoreNegativeClick(NoMoreGamesDialog.this);
                    }
