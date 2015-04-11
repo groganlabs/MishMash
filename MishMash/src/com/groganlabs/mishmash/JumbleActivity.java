@@ -1,35 +1,238 @@
 package com.groganlabs.mishmash;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.LinearLayout;
+import android.support.v4.app.DialogFragment;
 
 import com.groganlabs.mishmash.JumbleView;
 
-public class JumbleActivity extends Activity {
+public class JumbleActivity extends GameActivity {
 
+	private JumbleGame mGame;
+	private JumbleView mView;
+	private boolean gameChanged = false;
+	
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.jumble);
 		
-		JumbleView jumble = (JumbleView) findViewById(R.id.jumbleView1);
-		
-		jumble.setOnTouchListener(new View.OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent e) {
-				Log.d("Jumble", "puzzle was touched at "+e.getX()+" by "+e.getY());
-				return gameTouch(e.getX(), e.getY());
+		//see if we have a saved instance with a solution, if not we need to create one
+		//with the accompanying arrays
+		//if(savedInstanceState == null || savedInstanceState.getCharArray("solutionArr") == null) {
+		if(savedInstanceState == null || savedInstanceState.getParcelable(GAME_TAG) == null) {
+			try {
+				mGame = new JumbleGame(-1, -1, this);
+			} catch (Exception e1) {
+				noMoreGames();
 			}
-		});
+			
+		}
+		//we do have game information saved, so we'll use that
+		else {
+			mGame = savedInstanceState.getParcelable(GAME_TAG);
+			mGame.setContext(this);
+			gameChanged = savedInstanceState.getBoolean("gameChanged");
+		}
+		
+		if(mGame != null) {
+			LinearLayout layout = new LinearLayout(this);
+			layout.setOrientation(LinearLayout.VERTICAL);
+			
+			LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			
+			mView = new JumbleView(this);
+			mView.setLayoutParams(lp);
+			layout.addView(mView);
+			
+			AlphaView alpha = new AlphaView(this);
+			alpha.setLayoutParams(lp);
+			layout.addView(alpha);
+			
+			setContentView(layout);
+			
+			mView.setOnTouchListener(new View.OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent e) {
+					return gameTouch(e.getX(), e.getY());
+				}
+			});
+			
+			alpha.setOnTouchListener(new View.OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent event) {
+					//result of the keyboard touch
+					char res = ((AlphaView) v).getLetter(event.getX(), event.getY());
+					int curChar;
+					
+					//if we have a highlighted letter
+					if((curChar = mView.getHighlight()) >= 0) {
+						if(res != '<' && res != '>') {
+							mGame.setAnswerChar(res, curChar);
+						}
+						
+						//if we aren't deleting
+						if(res != 0 && res != '<' && res != '>') {
+							curChar++;
+							gameChanged = true;
+							//advance the highlight to the next word character
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar++;
+								if(curChar == mGame.getSolutionArr().length)
+									curChar = 0;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						else if(res == '>') {
+							curChar++;
+							if(curChar == mGame.getSolutionArr().length)
+								curChar = 0;
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar++;
+								if(curChar == mGame.getSolutionArr().length)
+									curChar = 0;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						else if(res == '<') {
+							curChar--;
+							if(curChar < 0)
+								curChar = mGame.getSolutionArr().length-1;
+							while(!isWordChar(mGame.getSolutionArr(), curChar)) {
+								curChar--;
+								if(curChar < 0)
+									curChar = mGame.getSolutionArr().length-1;
+							}
+							
+							mView.setHighlight(curChar);
+						}
+						mView.invalidate();
+						//if answerArr == solutionArr, notify player and add to db
+						if(mGame.gameWon()) {
+							//TODO: db updating
+							Log.d("jumble", "You win!");
+							DialogFragment frag = new YouWonDialog();
+							frag.show(getSupportFragmentManager(), GAME_TAG);
+						}
+					}
+					//If no letter is selected, do nothing
+					
+					return false;
+				}
+			});
+		}
 	}
 
+	/**
+	 * take the x and y coordinates of a touch event and determines if a
+	 * letter in the puzzle was touched then tells the view to update
+	 * highlighting as necessary
+	 * @param x
+	 * @param y
+	 * @return wait, why did I do this as boolean instead of void?
+	 */
 	public boolean gameTouch(float x, float y) {
-		JumbleView jumble = (JumbleView) findViewById(R.id.jumbleView1);
+		//If no letter touched, and a letter was highlighted
+		//Tell the view to remove the highlight and draw
+		//Else
+		//Get the letter selected - index of the array
+		//Have the view highlight that character and draw
+		int touched = mView.getTouched(x, y);
+		int newC;
+		
+		//no game letter was touched
+		if(touched < 0) {
+			newC = -1;
+		}
+		//should never happen, but just in case
+		else if(touched >= mGame.getSolution().length()) {
+			newC = -1;
+		}
+		//the user touched a spot within the game
+		else {
+			if(mGame.getSolutionArr()[touched] >= 'A' && mGame.getSolutionArr()[touched] <= 'Z')
+				newC = touched;
+			else
+				newC = -1;
+		}
+		
+		//We only need to redraw if the highlighting is changing
+		if(mView.setHighlight(newC))
+			mView.invalidate();
 		
 		return false;
 	}
 	
+	public JumbleGame getGame() {
+		return mGame;
+	}
+	
+	/**
+	 * save key information before onStop or onDestroy is called
+	 * Other info like time played can be added later
+	 */
+	@Override
+	protected void onSaveInstanceState(Bundle bundle) {
+		super.onSaveInstanceState(bundle);
+		
+		bundle.putParcelable(GAME_TAG, mGame);
+		bundle.putBoolean("gameChanged", gameChanged);
+	}
+	
+	/**
+	 * checks to see if the character is part of a word.
+	 * For now, that's just A-Z, but could include ' or - later.
+	 * @param charArray Array of characters
+	 * @param ii Index of the character to check
+	 * @return True if the character is part of the word, or false
+	 */
+	private boolean isWordChar(char[] charArray, int ii) {
+		if(ii >= charArray.length || ii < 0) {
+			return false;
+		}
+		//if(((charArray[ii] < 'A' || charArray[ii] > 'Z') && charArray[ii] != '\'') || (charArray[ii] == '-' && charArray[ii-1] == ' ')) {
+		if((charArray[ii] >= 'A' && charArray[ii] <= 'Z')) {
+			return true;
+		}
+		else
+			return false;
+	}
+
+	/**
+	 * Start a new game. Doesn't do anything with the old one.
+	 */
+	@Override
+	public void startNewGame() {
+		// Create a new game
+		try {
+			mGame = new JumbleGame(-1, -1, this);
+		} catch (Exception e) {
+			noMoreGames();
+		}
+		gameChanged = false;
+		mView.invalidate();
+	}
+
+	@Override
+	public void restartGame() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void showHint() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onRestartClick(DialogFragment dialog) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

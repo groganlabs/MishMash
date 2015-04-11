@@ -18,5 +18,18 @@
     <string name="timedPrefSum">Do you want your games timed?</string>
     <string name="test_string">Test String</string>
     <string name="test_string2">Testing again</string>
+    <string name="reusePrefSum">Use the same solution for different puzzles</string>
+    <string name="replayPrefSum">Replay games that have already been completed, even for the same puzzle type</string>
+    <string name="replayPref">Replay completed games</string>
+    <string name="menuRestart">restartGame</string>
+    <string name="menuRestartTitle">Restart Game</string>
+    <string name="menuNewGame">newGame</string>
+    <string name="menuNewGameTitle">New Game</string>
+    <string name="menuHint">hint</string>
+    <string name="menuHintTitle">Hint</string>
+    <string name="menuMain">mainMenu</string>
+    <string name="menuMainTitle">Back to main menu</string>
+    <string name="menuSettings">settings</string>
+    <string name="menuSettingsTitle">Settings</string>
 
 </resources>
