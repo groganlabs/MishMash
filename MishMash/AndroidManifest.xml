@@ -5,13 +5,8 @@
     android:versionName="1.0" >
 
     <uses-sdk android:minSdkVersion="7"
-<<<<<<< HEAD
         android:targetSdkVersion="22" />
     <uses-permission android:name="android.permission.INTERNET"/>
-=======
-        android:targetSdkVersion="22" />
-    <uses-permission android:name="android.permission.INTERNET"/>
->>>>>>> origin/JumbleView
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
@@ -25,7 +20,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-<<<<<<< HEAD
         </activity>
         <activity android:name=".MishMashSettings"></activity>
         <activity 
@@ -34,16 +28,6 @@
         <activity 
             android:name="CryptogramActivity"
             android:theme="@style/Theme.AppCompat"></activity>
-=======
-        </activity>
-        <activity android:name=".MishMashSettings"></activity>
-        <activity 
-            android:name="DropQuoteActivity"
-            android:theme="@style/Theme.AppCompat"></activity>
-        <activity 
-            android:name="CryptogramActivity"
-            android:theme="@style/Theme.AppCompat"></activity>
->>>>>>> origin/JumbleView
         <activity 
             android:name="JumbleActivity"
             android:theme="@style/Theme.AppCompat"></activity>
