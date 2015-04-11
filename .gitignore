@@ -1,3 +1,6 @@
 *.classpath
 MishMash/.classpath
 MishMash/bin/AndroidManifest.xml
+MishMash/bin/jarlist.cache
+MishMash/bin/classes.dex
+MishMash/bin/MishMash.apk
